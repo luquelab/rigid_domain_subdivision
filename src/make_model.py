@@ -53,7 +53,7 @@ def make_model(pdb, n_modes):
     else:
         print('Calculating Normal Modes')
         start = time.time()
-        evals, evecs = eigsh(anm.getHessian(), k=n_modes, sigma=1E-5, which='LA')
+        evals, evecs = eigsh(anm._hessian, k=n_modes, sigma=1E-5, which='LM')
         print(evals)
         end = time.time()
         print(end - start)
