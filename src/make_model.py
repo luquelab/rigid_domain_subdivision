@@ -35,7 +35,7 @@ def make_model(pdb, n_modes):
             anm._hessian = sparse.load_npz('../results/models/' + pdb + 'hess.npz')
             kirch = sparse.load_npz('../results/models/' + pdb + 'kirch.npz')
     else:
-        anm.buildHessian(calphas, cutoff=10.0, kdtree=True, sparse=True)
+        anm.buildHessian(calphas, cutoff=7.5, kdtree=True, sparse=True)
         sparse.save_npz('../results/models/' + pdb + 'hess.npz', anm.getHessian())
         sparse.save_npz('../results/models/' + pdb + 'kirch.npz', anm.getKirchhoff())
         kirch = anm.getKirchhoff()
@@ -51,16 +51,41 @@ def make_model(pdb, n_modes):
             evecs = anm.getEigvecs()[:,:n_modes].copy()
             print(evecs.shape)
     else:
+        from scipy.sparse.linalg import lobpcg
+        from pyamg import ruge_stuben_solver
         print('Calculating Normal Modes')
+        import matplotlib.pyplot as plt
+
         start = time.time()
-        evals, evecs = eigsh(anm._hessian, k=n_modes, sigma=1E-5, which='LM')
-        print(evals)
+        evals, evecs = eigsh(anm._hessian, k=n_modes, sigma=0, which='LM')
+        print('scipy', evals)
         end = time.time()
-        print(end - start)
+        print('scipy', end - start)
+        print(evals[evals > 1e-8])
+        fig, ax = plt.subplots(1, 1, figsize=(16, 6))
+        ax.scatter(np.arange(evals.shape[0]), evals, marker='D', label='Scipy')
+        fig.tight_layout()
+        plt.show()
+
+        # start = time.time()
+        # n = calphas.getCoords().shape[0]
+        # ml = ruge_stuben_solver(anm.getHessian())
+        # M = ml.aspreconditioner()
+        # epredict = np.random.rand(3 * n, n_modes)
+        # evals, evecs = lobpcg(anm.getHessian(), epredict, M=M, largest=False, tol=0)
+        # print('lob', evals)
+        # end = time.time()
+        # print('lob', end - start)
+        # print(evals[evals > 1e-8])
+        # fig, ax = plt.subplots(1, 1, figsize=(16, 6))
+        # ax.scatter(np.arange(evals.shape[0]), evals, marker='D', label='lob')
+        # fig.tight_layout()
+        # plt.show()
+
         anm._eigvals = evals
         anm._n_modes = len(evals)
-        anm._eigvecs = evecs
-        anm._array = evecs
+        anm._eigvecs = evecs.copy
+        anm._array = evecs.copy
         saveModel(anm, filename='../results/models/' + pdb + 'anm.npz')
 
     import matplotlib.pyplot as plt

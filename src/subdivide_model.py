@@ -93,7 +93,7 @@ def embedding(n_evecs, sims):
 def cluster_embedding(n_range, maps, calphas, method):
     print('Clustering Embedded Points')
 
-    from sklearn.cluster import k_means
+    from sklearn.cluster import k_means, AgglomerativeClustering
     #from sklearn.cluster import MiniBatchKMeans, AgglomerativeClustering
     #from sklearn.metrics import pairwise_distances
     # from sklearn_extra.cluster import KMedoids
@@ -139,6 +139,10 @@ def cluster_embedding(n_range, maps, calphas, method):
             centroids = calcCentroids(emb, label, n_clusters)
             centroids, label, _, n_iter = k_means(emb, n_clusters=n_clusters, init=discreteInit,
                                                       return_n_iter=True)
+        elif method == 'agg':
+            clust = AgglomerativeClustering(n_clusters=n_clusters, linkage='single')
+            label = clust.fit_predict(emb)
+            centroids = calcCentroids(emb, label, n_clusters)
         else:
             print('method should be kmeans or discretize. Defaulting to kmeans')
 
