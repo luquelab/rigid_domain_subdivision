@@ -21,7 +21,9 @@ def make_model(pdb, n_modes):
             with open(filename, 'wb') as f_out:
                 shutil.copyfileobj(f_in, f_out)
 
-    capsid = parsePDB(filename, biomol=True)
+
+    capsid = parsePDB(filename, biomol=True, chain='ABCDEFG')
+    print('Selection', capsid)
     calphas = capsid.select('ca').copy()
     print('Number Of Residues: ', calphas.getCoords().shape[0])
 
