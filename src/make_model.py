@@ -22,7 +22,7 @@ def make_model(pdb, n_modes):
                 shutil.copyfileobj(f_in, f_out)
 
 
-    capsid = parsePDB(filename, biomol=True, chain='ABCDEFG')
+    capsid = parsePDB(filename, biomol=True)
     print('Selection', capsid)
     calphas = capsid.select('ca').copy()
     print('Number Of Residues: ', calphas.getCoords().shape[0])
@@ -76,6 +76,10 @@ def make_model(pdb, n_modes):
     ax.scatter(np.arange(evals.shape[0]), evals, marker='D', label='eigs')
     fig.tight_layout()
     plt.show()
+    print('writing nmd')
+    anm.buildHessian(coords=calphas, cutoff=10, sparse=True)
+    anm.calcModes(n_modes=20)
+    writeNMD(pdb + '_anm_modes.nmd', anm[:10], calphas)
 
     model = anm
 
